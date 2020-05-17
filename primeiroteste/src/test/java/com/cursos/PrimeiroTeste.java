@@ -2,18 +2,28 @@ package com.cursos;
 
 
 import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.Test;
 
 public class PrimeiroTeste {
 
+    Calculadora calc;
+    int num1 = 10, num2 = 5;
+
+
+    @Before
+    public void setUp(){
+        calc = new Calculadora();
+    }
+
+
     @Test
     public void deveSomar2Numeros(){
             // cenário
-            Calculadora calc = new Calculadora();
-            int numero1 = 10, numero2 = 5;
+
 
             //execução
-            int resultado = calc.somar(numero1, numero2);
+            int resultado = calc.somar(num1, num2);
 
             //verificações
             Assertions.assertThat(resultado).isEqualTo(15);
@@ -22,85 +32,80 @@ public class PrimeiroTeste {
     @Test(expected = RuntimeException.class)
     public void naoDevSomarNumerosNegativos(){
         //canário
-        Calculadora calc = new Calculadora();
-        int num1 = -10,  num2 = 5;
+
 
         //execução
-        calc.somar(num1,num2);
+        calc.somar(-num1,num2);
 
     }
 
     @Test
     public void subtracaoDeNumeros(){
         //cenario
-        Calculadora calc = new Calculadora();
-        int num = 5, num2 = 10;
 
         //execução
-        calc.subtracao(num,num2);
+        int resultado = calc.subtracao(num1,num2);
+
+        //verrificacao
+        Assertions.assertThat(resultado).isEqualTo(5);
     }
 
     @Test
-    public void smultiplicacaoDeNumeros(){
+    public void multiplicacaoDeNumeros(){
         //cenário
-        Calculadora calc = new Calculadora();
-        int num = 8, num2 = 7;
 
         //excecução
-        int  resultado = calc.multiplicacao(num,num2);
+        int  resultado = calc.multiplicacao(num1,num2);
 
         //verificacao
-        Assertions.assertThat(resultado).isEqualTo(56);
+        Assertions.assertThat(resultado).isEqualTo(50);
     }
 
     @Test
     public void divisaoDeNumeros(){
         //cenário
-        Calculadora calc = new Calculadora();
-        int num = 10, num2 = 5;
 
         //execucao
-        int resultado = calc.divisao(num,num2);
+        float resultado = calc.divisao(num1,num2);
 
         //verficacao
-        Assertions.assertThat(resultado).isPositive();
+        Assertions.assertThat(resultado).isEqualTo(2);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ArithmeticException.class)
     public void divisaoDeNumerosComZero(){
         //cenário
-        Calculadora calc = new Calculadora();
-        int num = 10, num2 = 0;
+         num2 = 0;
 
         //execucao
-        int resultado = calc.divisao(num,num2);
+        float resultado = calc.divisao(num1,num2);
 
 
     }
 
 }
 
-class Calculadora {
+    class Calculadora {
 
-    int somar(int  num, int num2){
-        if(num < 0 || num2 < 0){
-            throw new RuntimeException("Não é permitido somar numeros negativos.");
+        int somar(int  num, int num2){
+            if(num < 0 || num2 < 0){
+                throw new RuntimeException("Não é permitido somar numeros negativos.");
+            }
+            return num + num2;
         }
-        return num + num2;
-    }
 
-    int subtracao(int num, int num2){
-        return num - num2;
-    }
-
-    int multiplicacao(int num, int num2){
-        return num * num2;
-    }
-
-    int divisao(int num, int num2){
-        if (num == 0){
-            throw new RuntimeException("Não é permitido divisao por 0.");
+        int subtracao(int num, int num2){
+            return num - num2;
         }
-        return num / num2;
+
+        int multiplicacao(int num, int num2){
+            return num * num2;
+        }
+
+        float divisao(int num, int num2){
+            if (num == 0){
+                throw new ArithmeticException("Não é permitido divisao por 0.");
+            }
+            return num / num2;
+        }
     }
-}
