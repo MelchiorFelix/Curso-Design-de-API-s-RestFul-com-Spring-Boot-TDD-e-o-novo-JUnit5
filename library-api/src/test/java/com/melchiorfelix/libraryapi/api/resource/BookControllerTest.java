@@ -55,7 +55,7 @@ public class BookControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json);
-        
+
         mvc
                 .perform(request)
                 .andExpect(status().isCreated())
