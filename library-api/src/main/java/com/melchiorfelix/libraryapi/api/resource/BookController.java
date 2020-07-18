@@ -10,13 +10,7 @@ public class BookController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BookDTO create(){
-        BookDTO dto = new BookDTO();
-        dto.setId(1L);
-        dto.setTitle("Meu Livro");
-        dto.setAuthor("Autor");
-        dto.setIsbn("123456");
-
+    public BookDTO create(@RequestBody BookDTO dto){
         return dto;
     }
 }
