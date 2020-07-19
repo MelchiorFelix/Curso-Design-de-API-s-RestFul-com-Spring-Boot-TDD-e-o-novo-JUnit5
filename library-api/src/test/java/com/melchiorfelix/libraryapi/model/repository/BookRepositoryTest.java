@@ -1,5 +1,6 @@
 package com.melchiorfelix.libraryapi.model.repository;
 
+import com.melchiorfelix.libraryapi.model.entity.Book;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +27,8 @@ public class BookRepositoryTest {
     public void returnTrueWhenIsbnExists(){
         //cenario
         String isbn = "123";
-
+        Book book = Book.builder().title("As aventuras").author("Joao").isbn(isbn).build();
+        entityManager.persist(book);
         //execucao
         boolean exists = repository.existsByIsbn(isbn);
 
@@ -34,4 +36,16 @@ public class BookRepositoryTest {
         assertThat(exists).isTrue();
     }
 
+    @Test
+    @DisplayName("Deve retornar falso quando não existir um livro na base com o isbn informado")
+    public void returnFalseWhenIsbnDoesntExists(){
+        //cenario
+        String isbn = "123";
+
+        //execucao
+        boolean exists = repository.existsByIsbn(isbn);
+
+        //verificao
+        assertThat(exists).isFalse();
+    }
 }
