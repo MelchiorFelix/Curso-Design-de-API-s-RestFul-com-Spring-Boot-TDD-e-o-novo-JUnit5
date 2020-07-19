@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -135,6 +136,23 @@ public class BookControllerTest {
                  .andExpect(jsonPath("author").value("João"))
                  .andExpect(jsonPath("isbn").value("123"));
 
+    }
+
+    @Test
+    @DisplayName("Deve retornar resource not found quando o livro procurado não existir")
+    public void  bookNotFound() throws Exception{
+        //cenario
+        Long id = 1L;
+        given(service.getById(anyLong())).willReturn(Optional.empty());
+
+        //execucao
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(BOOK_API.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        //verificao
+        mvc.perform(request)
+                .andExpect(status().isNotFound());
     }
 
 
