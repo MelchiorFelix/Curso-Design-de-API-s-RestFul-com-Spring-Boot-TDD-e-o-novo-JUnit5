@@ -1,5 +1,6 @@
 package com.melchiorfelix.libraryapi.servvice.impl;
 
+import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.repository.BookRepository;
 import com.melchiorfelix.libraryapi.servvice.BookService;
@@ -18,6 +19,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book save(Book book) {
+        if(repository.existsByIsbn(book.getIsbn())){
+            throw new BusinessException("Isbn já cadastrado");
+        }
         return repository.save(book);
     }
 }
