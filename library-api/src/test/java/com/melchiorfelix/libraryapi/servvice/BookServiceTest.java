@@ -35,11 +35,14 @@ public class BookServiceTest {
     @Test
     @DisplayName("Deve salvar um livro")
     public void saveBookTest(){
+        //cenario
         Book book = newBook();
         when(repository.save(book)).thenReturn(Book.builder().id(1L).author("Fulano").title("As aventuras").isbn("123").build());
 
+        //excecucao
         Book savedBook = service.save(book);
 
+        //verificacao
         assertThat(savedBook.getId()).isNotNull();
         assertThat(savedBook.getIsbn()).isEqualTo("123");
         assertThat(savedBook.getAuthor()).isEqualTo("Fulano");

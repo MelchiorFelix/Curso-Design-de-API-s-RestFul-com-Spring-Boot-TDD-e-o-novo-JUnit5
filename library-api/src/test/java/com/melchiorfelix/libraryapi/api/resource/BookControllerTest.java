@@ -91,18 +91,20 @@ public class BookControllerTest {
     @Test
     @DisplayName("Deve lançar erro ao tentar cadastrar um licro com isbn já utilizado por outro.")
     public void createBookWithDuplicatedIsbn() throws  Exception{
+        //cenario
         BookDTO dto = createNewBook();
         String json = new ObjectMapper().writeValueAsString(dto);
         String mensagemErro = "Isbn já cadastrado";
         BDDMockito.given(service.save(any(Book.class))).willThrow(new BusinessException(mensagemErro));
 
+        //execucao
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post(BOOK_API)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json);
 
-
+        //verificacao
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors", hasSize(1)))
