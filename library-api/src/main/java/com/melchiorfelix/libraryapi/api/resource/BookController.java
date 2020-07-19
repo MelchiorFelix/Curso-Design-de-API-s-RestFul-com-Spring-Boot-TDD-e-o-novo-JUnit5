@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/books")
@@ -32,6 +33,11 @@ public class BookController {
         entity = service.save(entity);
         return modelMapper.map( entity, BookDTO.class);
     }
+    @GetMapping("{id}")
+    public BookDTO get(@PathVariable Long id){
+        Book book = service.getById(id).get();
+        return modelMapper.map(book, BookDTO.class);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -45,4 +51,5 @@ public class BookController {
     public ApiErrors handleBusinessExceptions(BusinessException exception){
         return new ApiErrors(exception);
     }
+
 }

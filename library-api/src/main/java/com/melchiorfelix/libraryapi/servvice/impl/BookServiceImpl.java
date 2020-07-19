@@ -7,6 +7,8 @@ import com.melchiorfelix.libraryapi.servvice.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class BookServiceImpl implements BookService {
 
@@ -23,5 +25,10 @@ public class BookServiceImpl implements BookService {
             throw new BusinessException("Isbn já cadastrado");
         }
         return repository.save(book);
+    }
+
+    @Override
+    public Optional<Book> getById(Long id) {
+        return Optional.empty();
     }
 }

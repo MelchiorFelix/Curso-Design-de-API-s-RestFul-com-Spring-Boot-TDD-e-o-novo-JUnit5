@@ -24,8 +24,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 
+import java.util.Optional;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,7 +52,7 @@ public class BookControllerTest {
 
         BookDTO dto = createNewBook();
         Book savedBook = Book.builder().id(101L).title("Sociedade da Caveira de Cristal").author("Andréa del Fuego").isbn("001").build();
-        BDDMockito.given(service.save(any(Book.class)))
+        given(service.save(any(Book.class)))
                 .willReturn(savedBook);
 
         String json = new ObjectMapper().writeValueAsString(dto);
@@ -95,7 +98,7 @@ public class BookControllerTest {
         BookDTO dto = createNewBook();
         String json = new ObjectMapper().writeValueAsString(dto);
         String mensagemErro = "Isbn já cadastrado";
-        BDDMockito.given(service.save(any(Book.class))).willThrow(new BusinessException(mensagemErro));
+        given(service.save(any(Book.class))).willThrow(new BusinessException(mensagemErro));
 
         //execucao
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
@@ -109,6 +112,29 @@ public class BookControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors", hasSize(1)))
                 .andExpect(jsonPath("errors[0]").value(mensagemErro));
+    }
+
+     @Test
+     @DisplayName("Deve obter informacoes de um livro.")
+     public void getBookDetails() throws Exception {
+        //cenario
+         Long id = 1L;
+         Book book = Book.builder().id(id).title("As aventuras").author("João").isbn("123").build();
+         given(service.getById(id)).willReturn(Optional.of(book));
+
+         //execucao
+         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                 .get(BOOK_API.concat("/" + id))
+                 .accept(MediaType.APPLICATION_JSON);
+
+         //verificao
+         mvc.perform(request)
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("id").value(1L))
+                 .andExpect(jsonPath("title").value("As aventuras"))
+                 .andExpect(jsonPath("author").value("João"))
+                 .andExpect(jsonPath("isbn").value("123"));
+
     }
 
 
