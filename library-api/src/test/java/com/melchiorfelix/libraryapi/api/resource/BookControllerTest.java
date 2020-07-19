@@ -155,10 +155,46 @@ public class BookControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("Deve delatar um livro")
+    public void deleteBook() throws Exception{
+        //cenario
+        Long id = 1L;
+        Book book = Book.builder().id(id).build();
+        given(service.getById(id)).willReturn(Optional.of(book));
+
+        //execucao
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .delete(BOOK_API.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        //verificao
+        mvc.perform(request)
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Deve retornar not found quando não encontrar o livro para deletar")
+    public void errorDeleteBook() throws Exception{
+        //cenario
+        Long id = 1L;
+        given(service.getById(id)).willReturn(Optional.empty());
+
+        //execucao
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .delete(BOOK_API.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        //verificao
+        mvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
 
     private BookDTO createNewBook() {
         return BookDTO.builder().title("Sociedade da Caveira de Cristal").author("Andréa del Fuego").isbn("001").build();
     }
+
+
 
 
 
