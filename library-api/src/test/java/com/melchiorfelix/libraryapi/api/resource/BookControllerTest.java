@@ -190,6 +190,52 @@ public class BookControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("Deve atualizar um livro")
+    public void updateBook() throws Exception{
+        //cenario
+        Long id = 1L;
+        String json = new ObjectMapper().writeValueAsString(createNewBook());
+        Book book = Book.builder().id(id).title("Samba norte").author("Maria").isbn("321").build();
+        given(service.getById(id)).willReturn(Optional.of(book));
+        Book bookUpdate = Book.builder().id(id).title("Sociedade da Caveira de Cristal").author("Andréa del Fuego").isbn("001").build();
+        given(service.update(book)).willReturn(bookUpdate);
+
+        //execucao
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(BOOK_API.concat("/" + id))
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
+        //verificao
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(id))
+                .andExpect(jsonPath("title").value(createNewBook().getTitle()))
+                .andExpect(jsonPath("author").value(createNewBook().getAuthor()))
+                .andExpect(jsonPath("isbn").value("001"));
+
+    }
+    @Test
+    @DisplayName("Deve retornar 404 ao tentar  atualizar um livro")
+    public void errorupdateBook() throws Exception{
+        //cenario
+        String json = new ObjectMapper().writeValueAsString(createNewBook());
+        given(service.getById(anyLong())).willReturn(Optional.empty());
+
+
+        //execucao
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(BOOK_API.concat("/" + 1))
+                .accept(MediaType.APPLICATION_JSON);
+
+        //verificao
+        mvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
+
+
+
     private BookDTO createNewBook() {
         return BookDTO.builder().title("Sociedade da Caveira de Cristal").author("Andréa del Fuego").isbn("001").build();
     }
