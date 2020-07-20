@@ -124,13 +124,42 @@ public class BookServiceTest {
 
     @Test
     @DisplayName("Deve gerar erro ao tentar deletar um livro que não existe")
-    public void erroDelete(){
+    public void erroDeleteBook(){
         //cenario
         Book book  = newBook();
 
         //verificacao
         assertThrows(IllegalArgumentException.class, () -> service.delete(book));
         verify(repository, never()).delete(book);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar um livro")
+    public void updateBook(){
+        //cenario
+        Long id = 1L;
+        Book book  = newBook();
+        book.setId(id);
+        when(repository.save(book)).thenReturn(book);
+
+        //execucao
+        Book atualizado = service.update(book);
+
+        //verificacao
+        assertThat(atualizado.getId()).isEqualTo(book.getId());
+        verify(repository, times(1)).save(book);
+
+    }
+
+    @Test
+    @DisplayName("Deve gerar erro ao tentar atualizar um livro que não existe")
+    public void erroUpdateBok(){
+        //cenario
+        Book book  = newBook();
+
+        //verificacao
+        assertThrows(IllegalArgumentException.class, () -> service.update(book));
+        verify(repository, never()).save(book);
     }
 
     private Book newBook() {
