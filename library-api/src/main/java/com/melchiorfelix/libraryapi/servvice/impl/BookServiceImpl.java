@@ -5,6 +5,8 @@ import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.repository.BookRepository;
 import com.melchiorfelix.libraryapi.servvice.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -42,5 +44,10 @@ public class BookServiceImpl implements BookService {
     public Book update(Book book) {
         if(book == null || book.getId() == null) throw new IllegalArgumentException("Book id cant be null.");
         return this.repository.save(book);
+    }
+
+    @Override
+    public Page<Book> find(Book filter, Pageable pageRequest) {
+        return null;
     }
 }
