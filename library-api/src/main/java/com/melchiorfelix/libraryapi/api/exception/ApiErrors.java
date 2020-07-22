@@ -3,7 +3,6 @@ package com.melchiorfelix.libraryapi.api.exception;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import org.springframework.validation.BindingResult;
 
-import javax.xml.transform.sax.SAXResult;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
