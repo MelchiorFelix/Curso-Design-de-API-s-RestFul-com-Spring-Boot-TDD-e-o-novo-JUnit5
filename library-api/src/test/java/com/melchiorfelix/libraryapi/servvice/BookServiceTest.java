@@ -5,6 +5,7 @@ import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.repository.BookRepository;
 import com.melchiorfelix.libraryapi.servvice.impl.BookServiceImpl;
 import org.assertj.core.api.Assertions;
+import org.hibernate.validator.constraints.time.DurationMax;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -188,6 +189,23 @@ public class BookServiceTest {
 
 
 
+    }
+
+    @Test
+    @DisplayName("Deve obter um livro pelo isbn")
+    public void getBookByIsbn() {
+        //cenario
+        String isbn = "123";
+        when(repository.findByIsbn(isbn)).thenReturn(Optional.of(Book.builder().id(1L).isbn(isbn).build()));
+
+        //execucao
+        Optional<Book> bookByIsbn = service.getBookByIsbn(isbn);
+
+        //verificacoes
+        assertThat(bookByIsbn.isPresent()).isTrue();
+        assertThat(bookByIsbn.get().getId()).isEqualTo(1L);
+        assertThat(bookByIsbn.get().getIsbn()).isEqualTo(isbn);
+        verify(repository, times(1)).findByIsbn(isbn);
     }
 
     private Book newBook() {
