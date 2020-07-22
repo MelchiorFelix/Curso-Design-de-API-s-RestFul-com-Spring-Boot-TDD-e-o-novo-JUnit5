@@ -25,8 +25,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -65,6 +64,6 @@ public class LoanControllerTest {
         //verificao
         mvc.perform(request)
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("id").value(1L));
+                .andExpect(content().string("1"));
     }
 }
