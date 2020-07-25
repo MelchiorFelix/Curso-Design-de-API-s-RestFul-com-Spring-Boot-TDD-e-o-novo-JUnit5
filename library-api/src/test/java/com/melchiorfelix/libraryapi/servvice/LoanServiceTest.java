@@ -53,6 +53,7 @@ public class LoanServiceTest {
                 .customer(customer)
                 .book(book).build();
 
+        when(repository.existsByBookAndNotReturned(book)).thenReturn(false);
         when(repository.save(savingLoan)).thenReturn(savedLoan);
 
         //execucao

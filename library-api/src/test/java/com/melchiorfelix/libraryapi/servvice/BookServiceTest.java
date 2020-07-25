@@ -208,7 +208,7 @@ public class BookServiceTest {
         verify(repository, times(1)).findByIsbn(isbn);
     }
 
-    private Book newBook() {
+    public static Book newBook() {
         return Book.builder().isbn("123").author("Fulano").title("As aventuras").build();
     }
 }
