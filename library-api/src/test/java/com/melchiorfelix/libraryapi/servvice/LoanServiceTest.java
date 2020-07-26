@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -92,5 +93,38 @@ public class LoanServiceTest {
 
         verify(repository, never()).save(savingLoan);
 
+    }
+
+    @Test
+    @DisplayName("Deve obter as informações de um empréstimo pelo ID")
+    public void getLoanDetails(){
+        //cenario
+        Long id = 1L;
+        Loan loan = createLoan();
+        loan.setId(id);
+        when(repository.findById(id)).thenReturn(Optional.of(loan));
+
+        //execucao
+        Optional<Loan> result = service.getById(id);
+
+        //verificacao
+        assertThat(result.isPresent()).isTrue();
+        assertThat(result.get().getId()).isEqualTo(id);
+        assertThat(result.get().getCustomer()).isEqualTo(loan.getCustomer());
+        assertThat(result.get().getBook()).isEqualTo(loan.getBook());
+        assertThat(result.get().getLoanDate()).isEqualTo(loan.getLoanDate());
+
+        verify(repository).findById(id);
+    }
+
+    public Loan createLoan(){
+        Book book = Book.builder().id(1L).build();
+        String customer = "João";
+
+        return Loan.builder()
+                .book(book)
+                .customer(customer)
+                .loanDate(LocalDate.now())
+                .build();
     }
 }
