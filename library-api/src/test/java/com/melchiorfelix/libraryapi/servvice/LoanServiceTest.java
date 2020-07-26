@@ -1,5 +1,6 @@
 package com.melchiorfelix.libraryapi.servvice;
 
+import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.entity.Loan;
@@ -11,10 +12,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -134,7 +140,29 @@ public class LoanServiceTest {
         verify(repository).save(loan);
     }
 
+    @Test
+    @DisplayName("Deve filtrar emprestimos pelas propriedades")
+    public void findLoanTest(){
+        //cenario
+        LoanFilterDTO loanFilterDTO = LoanFilterDTO.builder().customer("Fulano").isbn("321").build();
+        Loan loan = createLoan();
+        loan.setId(1L);
+        PageRequest pageRe = PageRequest.of(0, 10);
+        PageImpl<Loan> page = new PageImpl<>(Arrays.asList(loan), pageRe, 1);
+        when(repository.findByBookIsbnOrCustomer(anyString(), anyString(), any(PageRequest.class))).thenReturn(page);
 
+        //execucao
+        Page<Loan> result = service.find(loanFilterDTO, pageRe);
+
+        //verificacao
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent()).isEqualTo(Arrays.asList(loan));
+        assertThat(result.getPageable().getPageNumber()).isEqualTo(0);
+        assertThat(result.getPageable().getPageSize()).isEqualTo(10);
+
+
+
+    }
 
 
 
