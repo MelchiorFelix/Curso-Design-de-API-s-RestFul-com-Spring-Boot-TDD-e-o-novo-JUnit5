@@ -1,12 +1,16 @@
 package com.melchiorfelix.libraryapi.api.resource;
 
 import com.melchiorfelix.libraryapi.api.dto.LoanDTO;
+import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
 import com.melchiorfelix.libraryapi.api.dto.ReturnedLoanDTO;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.entity.Loan;
 import com.melchiorfelix.libraryapi.servvice.BookService;
 import com.melchiorfelix.libraryapi.servvice.LoanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,6 +42,12 @@ public class LoanController {
         Loan loan = service.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         loan.setReturned(dto.getReturned());
         service.update(loan);
+    }
+
+    @GetMapping
+    public Page<LoanDTO> find(LoanFilterDTO dto, Pageable pageable){
+        Page<Loan> result = service.find(dto, pageable);
+        return null;
     }
 
 }
