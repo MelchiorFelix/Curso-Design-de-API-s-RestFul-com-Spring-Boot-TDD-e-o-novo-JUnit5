@@ -1,6 +1,7 @@
 package com.melchiorfelix.libraryapi.api.resource;
 
 import com.melchiorfelix.libraryapi.api.dto.LoanDTO;
+import com.melchiorfelix.libraryapi.api.dto.ReturnedLoanDTO;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.entity.Loan;
 import com.melchiorfelix.libraryapi.servvice.BookService;
@@ -32,6 +33,11 @@ public class LoanController {
         return loan.getId();
     }
 
-
+    @PatchMapping("{id}")
+    public void returnBook(@PathVariable Long id, @RequestBody ReturnedLoanDTO dto){
+        Loan loan = service.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        loan.setReturned(dto.getReturned());
+        service.update(loan);
+    }
 
 }
