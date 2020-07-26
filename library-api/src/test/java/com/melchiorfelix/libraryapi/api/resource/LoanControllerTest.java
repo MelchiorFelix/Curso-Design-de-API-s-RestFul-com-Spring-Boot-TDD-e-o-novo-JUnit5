@@ -172,7 +172,7 @@ public class LoanControllerTest {
 
     @Test
     @DisplayName("Deve filtrar emprestimos")
-    public void findBooksTests() throws Exception{
+    public void findLoanTests() throws Exception{
         //cenario
         Long id = 1L;
         Loan loan = LoanServiceTest.createLoan();
@@ -182,7 +182,7 @@ public class LoanControllerTest {
         given(loanService.find(any(LoanFilterDTO.class), any(Pageable.class)))
                 .willReturn(new PageImpl<Loan>(Arrays.asList(loan), PageRequest.of(0,10),1));
 
-        String queryString = String.format("?isbn=%s&customer=%s&page=0&size=100", loan.getBook().getIsbn(), loan.getCustomer());
+        String queryString = String.format("?isbn=%s&customer=%s&page=0&size=10", loan.getBook().getIsbn(), loan.getCustomer());
 
         //execucao
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
