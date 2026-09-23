@@ -2,7 +2,7 @@ package com.melchiorfelix.libraryapi.api.dto;
 
 import lombok.*;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 @Getter
 @Setter

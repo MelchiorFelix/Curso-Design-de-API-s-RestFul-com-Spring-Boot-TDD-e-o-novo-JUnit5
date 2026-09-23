@@ -1,6 +1,6 @@
 package com.melchiorfelix.libraryapi.api.resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.melchiorfelix.libraryapi.api.dto.LoanDTO;
 import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
 import com.melchiorfelix.libraryapi.api.dto.ReturnedLoanDTO;
@@ -15,9 +15,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,9 +51,9 @@ public class LoanControllerTest {
 
     @Autowired
     MockMvc mvc;
-    @MockBean
+    @MockitoBean
     private BookService bookService;
-    @MockBean
+    @MockitoBean
     private LoanService loanService;
 
     @Test
