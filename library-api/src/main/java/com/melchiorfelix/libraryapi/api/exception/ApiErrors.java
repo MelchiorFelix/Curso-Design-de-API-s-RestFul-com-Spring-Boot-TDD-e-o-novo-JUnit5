@@ -12,6 +12,10 @@ public class ApiErrors {
 
     private List<String> errors;
 
+    public ApiErrors(String message) {
+        this.errors = java.util.List.of(message);
+    }
+
     public ApiErrors(BindingResult bindingResult) {
         this.errors = new ArrayList<>();
         bindingResult.getAllErrors().forEach( error ->  this.errors.add(error.getDefaultMessage()));
@@ -21,7 +25,7 @@ public class ApiErrors {
         this.errors = Arrays.asList(exception.getMessage());
     }
     public ApiErrors(ResponseStatusException exception) {
-        this.errors = Arrays.asList(exception.getReason());
+        this.errors = java.util.List.of(exception.getReason() == null ? "Resource not found" : exception.getReason());
     }
 
     public List<String> getErrors() {

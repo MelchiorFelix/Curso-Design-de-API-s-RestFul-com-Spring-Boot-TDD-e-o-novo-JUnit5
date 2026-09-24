@@ -1,26 +1,39 @@
 package com.melchiorfelix.libraryapi.model.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDate;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Loan {
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    // Preserve the borrower's name at checkout when their profile changes.
+    @Column(nullable = false)
     private String customer;
-    @JoinColumn(name = "id_book")
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_book", nullable = false)
     private Book book;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "copy_id", nullable = false)
+    private BookCopy copy;
+    @Column(nullable = false)
     private LocalDate loanDate;
-    private Boolean returned;
+    @Column(nullable = false)
+    private LocalDate dueDate;
+    private LocalDate returnedDate;
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean returned = false;
+    @Column(nullable = false)
+    private int renewalCount;
 }

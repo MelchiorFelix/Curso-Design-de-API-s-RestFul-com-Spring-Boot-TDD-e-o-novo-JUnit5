@@ -1,9 +1,6 @@
 package com.melchiorfelix.libraryapi.api.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @AllArgsConstructor
@@ -12,4 +9,7 @@ import lombok.NoArgsConstructor;
 public class LoanFilterDTO {
     private String isbn;
     private String customer;
+    private Long memberId;
+    private Boolean returned;
+    private Boolean overdue;
 }

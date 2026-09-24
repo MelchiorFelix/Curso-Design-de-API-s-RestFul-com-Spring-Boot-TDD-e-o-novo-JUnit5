@@ -53,7 +53,7 @@ public class BookController {
     }
 
     @PutMapping("{id}")
-    public BookDTO update(@PathVariable Long id, BookDTO dto){
+    public BookDTO update(@PathVariable Long id, @RequestBody @Valid BookDTO dto){
         return service.getById(id).map(book ->{
             book.setAuthor(dto.getAuthor());
             book.setTitle(dto.getTitle());
@@ -77,13 +77,7 @@ public class BookController {
     public Page<LoanDTO> loansByBook(@PathVariable Long id, Pageable pageable){
         Book book = service.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         Page<Loan> result = loanService.getLoansByBook(book, pageable);
-        List<LoanDTO> list = result.getContent().stream().map(loan -> {
-            Book loanBook = loan.getBook();
-            BookDTO bookDTO = modelMapper.map(loanBook, BookDTO.class);
-            LoanDTO loanDTO = modelMapper.map(loan, LoanDTO.class);
-            loanDTO.setBook(bookDTO);
-            return loanDTO;
-        }).collect(Collectors.toList());
+        List<LoanDTO> list = result.getContent().stream().map(LoanDTO::from).collect(Collectors.toList());
         return new PageImpl<>(list, pageable, result.getTotalElements());
 
     }

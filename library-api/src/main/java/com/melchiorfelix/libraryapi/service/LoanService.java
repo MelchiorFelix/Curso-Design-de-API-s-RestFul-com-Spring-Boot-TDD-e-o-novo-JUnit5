@@ -1,23 +1,16 @@
 package com.melchiorfelix.libraryapi.service;
 
-import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
-import com.melchiorfelix.libraryapi.api.resource.BookController;
-import com.melchiorfelix.libraryapi.model.entity.Book;
-import com.melchiorfelix.libraryapi.model.entity.Loan;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
+import com.melchiorfelix.libraryapi.api.dto.*;
+import com.melchiorfelix.libraryapi.model.entity.*;
+import org.springframework.data.domain.*;
 import java.util.Optional;
 
 public interface LoanService {
-
-    Loan save(Loan loan);
-
+    Loan checkout(CheckoutRequest request);
     Optional<Loan> getById(Long id);
-
-    Loan update(Loan loan);
-
+    Loan returnLoan(Long id);
+    Loan renew(Long id);
     Page<Loan> find(LoanFilterDTO filter, Pageable page);
-
     Page<Loan> getLoansByBook(Book book, Pageable pageable);
+    Page<Loan> getLoansByMember(Long memberId, Pageable pageable);
 }
