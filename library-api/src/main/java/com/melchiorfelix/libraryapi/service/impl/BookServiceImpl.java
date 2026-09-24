@@ -1,9 +1,9 @@
-package com.melchiorfelix.libraryapi.servvice.impl;
+package com.melchiorfelix.libraryapi.service.impl;
 
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.repository.BookRepository;
-import com.melchiorfelix.libraryapi.servvice.BookService;
+import com.melchiorfelix.libraryapi.service.BookService;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public Book save(Book book) {
         if(repository.existsByIsbn(book.getIsbn())){
-            throw new BusinessException("Isbn já cadastrado");
+            throw new BusinessException("ISBN already registered");
         }
         return repository.save(book);
     }
@@ -37,13 +37,13 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void delete(Book book) {
-        if(book == null || book.getId() == null) throw new IllegalArgumentException("Book id cant be null.");
+        if(book == null || book.getId() == null) throw new IllegalArgumentException("Book ID cannot be null.");
         this.repository.delete(book);
     }
 
     @Override
     public Book update(Book book) {
-        if(book == null || book.getId() == null) throw new IllegalArgumentException("Book id cant be null.");
+        if(book == null || book.getId() == null) throw new IllegalArgumentException("Book ID cannot be null.");
         return this.repository.save(book);
     }
 

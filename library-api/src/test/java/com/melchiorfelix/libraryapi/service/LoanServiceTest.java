@@ -1,11 +1,11 @@
-package com.melchiorfelix.libraryapi.servvice;
+package com.melchiorfelix.libraryapi.service;
 
 import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.entity.Loan;
 import com.melchiorfelix.libraryapi.model.repository.LoanRepository;
-import com.melchiorfelix.libraryapi.servvice.impl.LoanServiceImpl;
+import com.melchiorfelix.libraryapi.service.impl.LoanServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,9 +41,9 @@ public class LoanServiceTest {
     }
 
     @Test
-    @DisplayName("Deve salvar um empréstimo")
+    @DisplayName("Should save a loan")
     public void saveLoanTest(){
-        //cenario
+        // Arrange
         Book book = Book.builder().id(1L).build();
         String customer = "João";
 
@@ -62,10 +62,10 @@ public class LoanServiceTest {
         when(repository.existsByBookAndNotReturned(book)).thenReturn(false);
         when(repository.save(savingLoan)).thenReturn(savedLoan);
 
-        //execucao
+        // Act
         Loan loan = service.save(savingLoan);
 
-        //verificacao
+        // Assert
         assertThat(loan.getId()).isEqualTo(savedLoan.getId());
         assertThat(loan.getBook()).isEqualTo(savedLoan.getBook());
         assertThat(loan.getCustomer()).isEqualTo(savedLoan.getCustomer());
@@ -74,9 +74,9 @@ public class LoanServiceTest {
 
 
     @Test
-    @DisplayName("Deve lançar erro de negocio ao salvar um empréstimo com livro já emprestado")
+    @DisplayName("Should reject a loan when the book is already on loan")
     public void loanedBookSaveTest(){
-        //cenario
+        // Arrange
         Book book = Book.builder().id(1L).build();
         String customer = "João";
 
@@ -89,10 +89,10 @@ public class LoanServiceTest {
 
 
 
-        //execucao
+        // Act
         Throwable exception = catchThrowable(() -> service.save(savingLoan));
 
-        //verificacao
+        // Assert
         assertThat(exception).isInstanceOf(BusinessException.class)
                 .hasMessage("Book already loaned");
 
@@ -101,18 +101,18 @@ public class LoanServiceTest {
     }
 
     @Test
-    @DisplayName("Deve obter as informações de um empréstimo pelo ID")
+    @DisplayName("Should retrieve loan details by ID")
     public void getLoanDetails(){
-        //cenario
+        // Arrange
         Long id = 1L;
         Loan loan = createLoan();
         loan.setId(id);
         when(repository.findById(id)).thenReturn(Optional.of(loan));
 
-        //execucao
+        // Act
         Optional<Loan> result = service.getById(id);
 
-        //verificacao
+        // Assert
         assertThat(result.isPresent()).isTrue();
         assertThat(result.get().getId()).isEqualTo(id);
         assertThat(result.get().getCustomer()).isEqualTo(loan.getCustomer());
@@ -123,37 +123,37 @@ public class LoanServiceTest {
     }
 
     @Test
-    @DisplayName("Deve atualizar um emprestimo")
+    @DisplayName("Should update a loan")
     public void updateLoan(){
-        //cenario
+        // Arrange
         Loan loan = createLoan();
         loan.setId(1L);
         loan.setReturned(true);
         when(repository.save(loan)).thenReturn(loan);
 
-        //execucao
+        // Act
         Loan update = service.update(loan);
 
-        //verificacao
+        // Assert
         assertThat(update.getReturned()).isTrue();
         verify(repository).save(loan);
     }
 
     @Test
-    @DisplayName("Deve filtrar emprestimos pelas propriedades")
+    @DisplayName("Should filter loans by their properties")
     public void findLoanTest(){
-        //cenario
-        LoanFilterDTO loanFilterDTO = LoanFilterDTO.builder().customer("Fulano").isbn("321").build();
+        // Arrange
+        LoanFilterDTO loanFilterDTO = LoanFilterDTO.builder().customer("Alex Smith").isbn("321").build();
         Loan loan = createLoan();
         loan.setId(1L);
         PageRequest pageRe = PageRequest.of(0, 10);
         PageImpl<Loan> page = new PageImpl<>(Arrays.asList(loan), pageRe, 1);
         when(repository.findByBookIsbnOrCustomer(anyString(), anyString(), any(PageRequest.class))).thenReturn(page);
 
-        //execucao
+        // Act
         Page<Loan> result = service.find(loanFilterDTO, pageRe);
 
-        //verificacao
+        // Assert
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).isEqualTo(Arrays.asList(loan));
         assertThat(result.getPageable().getPageNumber()).isEqualTo(0);

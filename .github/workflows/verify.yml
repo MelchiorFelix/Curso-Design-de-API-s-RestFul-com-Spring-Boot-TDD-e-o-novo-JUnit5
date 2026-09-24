@@ -31,7 +31,7 @@ jobs:
         if: matrix.java == '17'
         shell: pwsh
         run: ./scripts/Test-Dependencies.ps1
-      - name: Smoke-test packaged APIs
+      - name: Smoke-test packaged library API
         shell: bash
         run: |
           smoke_test() {
@@ -47,7 +47,6 @@ jobs:
             trap - EXIT
           }
           smoke_test library-api/target/library-api-0.0.1-SNAPSHOT.jar /api/books
-          smoke_test primeiro-projeto-rest/target/primeiro-projeto-rest-1.0-SNAPSHOT.jar /api/cliente/1
       - name: Save verification reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

@@ -4,8 +4,8 @@ import tools.jackson.databind.ObjectMapper;
 import com.melchiorfelix.libraryapi.api.dto.BookDTO;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
-import com.melchiorfelix.libraryapi.servvice.BookService;
-import com.melchiorfelix.libraryapi.servvice.LoanService;
+import com.melchiorfelix.libraryapi.service.BookService;
+import com.melchiorfelix.libraryapi.service.LoanService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,11 +55,11 @@ public class BookControllerTest {
     LoanService loanService;
 
     @Test
-    @DisplayName("Deve criar um livro com sucesso.")
+    @DisplayName("Should create a book successfully")
     public void createBookTest() throws Exception{
 
         BookDTO dto = createNewBook();
-        Book savedBook = Book.builder().id(101L).title("Sociedade da Caveira de Cristal").author("Andréa del Fuego").isbn("001").build();
+        Book savedBook = Book.builder().id(101L).title("The Crystal Skull Society").author("Andréa del Fuego").isbn("001").build();
         given(service.save(any(Book.class)))
                 .willReturn(savedBook);
 
@@ -84,7 +84,7 @@ public class BookControllerTest {
 
 
     @Test
-    @DisplayName("Deve lançacar erro de validação quando não houver dados sufientes para criação do livro.")
+    @DisplayName("Should reject a book with missing required fields")
     public void createInvalidBookTest() throws Exception {
         String json = new ObjectMapper().writeValueAsString(new BookDTO());
 
@@ -100,121 +100,121 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("Deve lançar erro ao tentar cadastrar um licro com isbn já utilizado por outro.")
+    @DisplayName("Should reject creating a book with a duplicate ISBN")
     public void createBookWithDuplicatedIsbn() throws  Exception{
-        //cenario
+        // Arrange
         BookDTO dto = createNewBook();
         String json = new ObjectMapper().writeValueAsString(dto);
-        String mensagemErro = "Isbn já cadastrado";
-        given(service.save(any(Book.class))).willThrow(new BusinessException(mensagemErro));
+        String errorMessage = "ISBN already registered";
+        given(service.save(any(Book.class))).willThrow(new BusinessException(errorMessage));
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post(BOOK_API)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json);
 
-        //verificacao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors", hasSize(1)))
-                .andExpect(jsonPath("errors[0]").value(mensagemErro));
+                .andExpect(jsonPath("errors[0]").value(errorMessage));
     }
 
      @Test
-     @DisplayName("Deve obter informacoes de um livro.")
+     @DisplayName("Should retrieve book details")
      public void getBookDetails() throws Exception {
-        //cenario
+        // Arrange
          Long id = 1L;
-         Book book = Book.builder().id(id).title("As aventuras").author("João").isbn("123").build();
+         Book book = Book.builder().id(id).title("The Adventures").author("João").isbn("123").build();
          given(service.getById(id)).willReturn(Optional.of(book));
 
-         //execucao
+         // Act
          MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                  .get(BOOK_API.concat("/" + id))
                  .accept(MediaType.APPLICATION_JSON);
 
-         //verificao
+         // Assert
          mvc.perform(request)
                  .andExpect(status().isOk())
                  .andExpect(jsonPath("id").value(1L))
-                 .andExpect(jsonPath("title").value("As aventuras"))
+                 .andExpect(jsonPath("title").value("The Adventures"))
                  .andExpect(jsonPath("author").value("João"))
                  .andExpect(jsonPath("isbn").value("123"));
 
     }
 
     @Test
-    @DisplayName("Deve retornar resource not found quando o livro procurado não existir")
+    @DisplayName("Should return 404 when the requested book does not exist")
     public void  bookNotFound() throws Exception{
-        //cenario
+        // Arrange
         Long id = 1L;
         given(service.getById(anyLong())).willReturn(Optional.empty());
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .get(BOOK_API.concat("/" + id))
                 .accept(MediaType.APPLICATION_JSON);
 
-        //verificao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("Deve delatar um livro")
+    @DisplayName("Should delete a book")
     public void deleteBook() throws Exception{
-        //cenario
+        // Arrange
         Long id = 1L;
         Book book = Book.builder().id(id).build();
         given(service.getById(id)).willReturn(Optional.of(book));
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .delete(BOOK_API.concat("/" + id))
                 .accept(MediaType.APPLICATION_JSON);
 
-        //verificao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("Deve retornar not found quando não encontrar o livro para deletar")
+    @DisplayName("Should return 404 when deleting a nonexistent book")
     public void errorDeleteBook() throws Exception{
-        //cenario
+        // Arrange
         Long id = 1L;
         given(service.getById(id)).willReturn(Optional.empty());
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .delete(BOOK_API.concat("/" + id))
                 .accept(MediaType.APPLICATION_JSON);
 
-        //verificao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("Deve atualizar um livro")
+    @DisplayName("Should update a book")
     public void updateBook() throws Exception{
-        //cenario
+        // Arrange
         Long id = 1L;
         String json = new ObjectMapper().writeValueAsString(createNewBook());
-        Book book = Book.builder().id(id).title("Samba norte").author("Maria").isbn("321").build();
+        Book book = Book.builder().id(id).title("Northern Samba").author("Maria").isbn("321").build();
         given(service.getById(id)).willReturn(Optional.of(book));
-        Book bookUpdate = Book.builder().id(id).title("Sociedade da Caveira de Cristal").author("Andréa del Fuego").isbn("001").build();
+        Book bookUpdate = Book.builder().id(id).title("The Crystal Skull Society").author("Andréa del Fuego").isbn("001").build();
         given(service.update(book)).willReturn(bookUpdate);
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .put(BOOK_API.concat("/" + id))
                 .content(json)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON);
-        //verificao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id").value(id))
@@ -224,39 +224,39 @@ public class BookControllerTest {
 
     }
     @Test
-    @DisplayName("Deve retornar 404 ao tentar  atualizar um livro")
-    public void errorupdateBook() throws Exception{
-        //cenario
+    @DisplayName("Should return 404 when updating a nonexistent book")
+    public void updateNonexistentBook() throws Exception{
+        // Arrange
         String json = new ObjectMapper().writeValueAsString(createNewBook());
         given(service.getById(anyLong())).willReturn(Optional.empty());
 
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .put(BOOK_API.concat("/" + 1))
                 .accept(MediaType.APPLICATION_JSON);
 
-        //verificao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("Deve filtrar livros")
+    @DisplayName("Should filter books")
     public void findBooksTests() throws Exception{
-        //cenario
+        // Arrange
         Long id = 1L;
         Book book = Book.builder().id(id).title(createNewBook().getTitle()).author(createNewBook().getAuthor()).isbn(createNewBook().getIsbn()).build();
         given(service.find(any(Book.class), any(Pageable.class)))
                 .willReturn(new PageImpl<Book>(Arrays.asList(book), PageRequest.of(0,100),1));
         String queryString = String.format("?title=%s&author=%s&page=0&size=100", book.getTitle(), book.getAuthor());
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .get(BOOK_API.concat(queryString))
                 .accept(MediaType.APPLICATION_JSON);
 
-        //verificacao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("content", hasSize(1)))
@@ -269,7 +269,7 @@ public class BookControllerTest {
 
 
     private BookDTO createNewBook() {
-        return BookDTO.builder().title("Sociedade da Caveira de Cristal").author("Andréa del Fuego").isbn("001").build();
+        return BookDTO.builder().title("The Crystal Skull Society").author("Andréa del Fuego").isbn("001").build();
     }
 
 

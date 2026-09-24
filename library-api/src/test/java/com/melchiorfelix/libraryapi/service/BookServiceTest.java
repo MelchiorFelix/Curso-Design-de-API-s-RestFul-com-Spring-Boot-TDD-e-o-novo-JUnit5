@@ -1,9 +1,9 @@
-package com.melchiorfelix.libraryapi.servvice;
+package com.melchiorfelix.libraryapi.service;
 
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.repository.BookRepository;
-import com.melchiorfelix.libraryapi.servvice.impl.BookServiceImpl;
+import com.melchiorfelix.libraryapi.service.impl.BookServiceImpl;
 import org.assertj.core.api.Assertions;
 import org.hibernate.validator.constraints.time.DurationMax;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,54 +43,54 @@ public class BookServiceTest {
     }
 
     @Test
-    @DisplayName("Deve salvar um livro")
+    @DisplayName("Should save a book")
     public void saveBookTest(){
-        //cenario
+        // Arrange
         Book book = newBook();
-        when(repository.save(book)).thenReturn(Book.builder().id(1L).author("Fulano").title("As aventuras").isbn("123").build());
+        when(repository.save(book)).thenReturn(Book.builder().id(1L).author("Alex Smith").title("The Adventures").isbn("123").build());
 
-        //excecucao
+        // Act
         Book savedBook = service.save(book);
 
-        //verificacao
+        // Assert
         assertThat(savedBook.getId()).isNotNull();
         assertThat(savedBook.getIsbn()).isEqualTo("123");
-        assertThat(savedBook.getAuthor()).isEqualTo("Fulano");
-        assertThat(savedBook.getTitle()).isEqualTo("As aventuras");
+        assertThat(savedBook.getAuthor()).isEqualTo("Alex Smith");
+        assertThat(savedBook.getTitle()).isEqualTo("The Adventures");
     }
 
 
 
     @Test
-    @DisplayName("Deve lançar erro de negocio ao tentar salvar um livro com isbn duplicado")
+    @DisplayName("Should reject a book with a duplicate ISBN")
     public void shouldNotSaveABookWithDuplicatedISBN(){
-        //cenario
+        // Arrange
         Book book = newBook();
         when(repository.existsByIsbn(anyString())).thenReturn(true);
 
-        //execucao
+        // Act
         Throwable exception = Assertions.catchThrowable(() -> service.save(book));
 
-        //verificacao
-        assertThat(exception).isInstanceOf(BusinessException.class).hasMessage("Isbn já cadastrado");
+        // Assert
+        assertThat(exception).isInstanceOf(BusinessException.class).hasMessage("ISBN already registered");
 
         verify(repository, never()).save(book);
 
     }
 
     @Test
-    @DisplayName("Deve obter um livro por id")
+    @DisplayName("Should retrieve a book by ID")
     public void getById(){
-        //cenario
+        // Arrange
         Long id = 1L;
         Book book  = newBook();
         book.setId(id);
         when(repository.findById(id)).thenReturn(Optional.of(book));
 
-        //execucao
+        // Act
         Optional<Book> foundBook = service.getById(id);
 
-        //verificacao
+        // Assert
         assertThat(foundBook.isPresent()).isTrue();
         assertThat(foundBook.get().getId()).isEqualTo(id);
         assertThat(foundBook.get().getAuthor()).isEqualTo(newBook().getAuthor());
@@ -99,89 +99,89 @@ public class BookServiceTest {
 
     }
     @Test
-    @DisplayName("Deve retornar vazio ao obter um livro por Id quando ele não existe")
-    public void errorgetById(){
-        //cenario
+    @DisplayName("Should return an empty result when the book does not exist")
+    public void getNonexistentBookById(){
+        // Arrange
         Long id = 1L;
         when(repository.findById(id)).thenReturn(Optional.empty());
 
-        //execucao
+        // Act
         Optional<Book> book = service.getById(id);
 
-        //verificacao
+        // Assert
         assertThat(book.isPresent()).isFalse();
     }
 
     @Test
-    @DisplayName("Deve deletar um livro por id")
-    public void deleteteBook(){
-        //cenario
+    @DisplayName("Should delete a book by ID")
+    public void deleteBook(){
+        // Arrange
         Long id = 1L;
         Book book  = newBook();
         book.setId(id);
 
 
-        //execucao
+        // Act
         assertDoesNotThrow(() -> service.delete(book));
 
-        //verificacao
+        // Assert
         verify(repository, times(1)).delete(book);
 
     }
 
     @Test
-    @DisplayName("Deve gerar erro ao tentar deletar um livro que não existe")
-    public void erroDeleteBook(){
-        //cenario
+    @DisplayName("Should reject deletion of a book without an ID")
+    public void rejectDeletingBookWithoutId(){
+        // Arrange
         Book book  = newBook();
 
-        //verificacao
+        // Assert
         assertThrows(IllegalArgumentException.class, () -> service.delete(book));
         verify(repository, never()).delete(book);
     }
 
     @Test
-    @DisplayName("Deve atualizar um livro")
+    @DisplayName("Should update a book")
     public void updateBook(){
-        //cenario
+        // Arrange
         Long id = 1L;
         Book book  = newBook();
         book.setId(id);
         when(repository.save(book)).thenReturn(book);
 
-        //execucao
-        Book atualizado = service.update(book);
+        // Act
+        Book updatedBook = service.update(book);
 
-        //verificacao
-        assertThat(atualizado.getId()).isEqualTo(book.getId());
+        // Assert
+        assertThat(updatedBook.getId()).isEqualTo(book.getId());
         verify(repository, times(1)).save(book);
 
     }
 
     @Test
-    @DisplayName("Deve gerar erro ao tentar atualizar um livro que não existe")
-    public void erroUpdateBok(){
-        //cenario
+    @DisplayName("Should reject updating a book without an ID")
+    public void rejectUpdatingBookWithoutId(){
+        // Arrange
         Book book  = newBook();
 
-        //verificacao
+        // Assert
         assertThrows(IllegalArgumentException.class, () -> service.update(book));
         verify(repository, never()).save(book);
     }
 
     @Test
-    @DisplayName("Deve filtrar livros pelas propriedades")
+    @DisplayName("Should filter books by their properties")
     public void findBookTest(){
-        //cenario
+        // Arrange
         Book book = newBook();
         PageRequest pageRe = PageRequest.of(0, 10);
         PageImpl<Book> page = new PageImpl<>(Arrays.asList(book), pageRe, 1);
         when(repository.findAll(any(Example.class), any(PageRequest.class))).thenReturn(page);
 
-        //execucao
+        // Act
         Page<Book> result = service.find(book, pageRe);
 
-        //verificacao
+        // Assert
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).isEqualTo(Arrays.asList(book));
         assertThat(result.getPageable().getPageNumber()).isEqualTo(0);
@@ -192,16 +192,16 @@ public class BookServiceTest {
     }
 
     @Test
-    @DisplayName("Deve obter um livro pelo isbn")
+    @DisplayName("Should retrieve a book by ISBN")
     public void getBookByIsbn() {
-        //cenario
+        // Arrange
         String isbn = "123";
         when(repository.findByIsbn(isbn)).thenReturn(Optional.of(Book.builder().id(1L).isbn(isbn).build()));
 
-        //execucao
+        // Act
         Optional<Book> bookByIsbn = service.getBookByIsbn(isbn);
 
-        //verificacoes
+        // Assert
         assertThat(bookByIsbn.isPresent()).isTrue();
         assertThat(bookByIsbn.get().getId()).isEqualTo(1L);
         assertThat(bookByIsbn.get().getIsbn()).isEqualTo(isbn);
@@ -209,6 +209,6 @@ public class BookServiceTest {
     }
 
     public static Book newBook() {
-        return Book.builder().isbn("123").author("Fulano").title("As aventuras").build();
+        return Book.builder().isbn("123").author("Alex Smith").title("The Adventures").build();
     }
 }
