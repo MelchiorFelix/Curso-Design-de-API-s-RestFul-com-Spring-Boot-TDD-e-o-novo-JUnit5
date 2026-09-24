@@ -4,8 +4,6 @@ updates:
     directories:
       - /
       - /library-api
-      - /primeiro-projeto-rest
-      - /primeiroteste
     schedule:
       interval: weekly
     groups:

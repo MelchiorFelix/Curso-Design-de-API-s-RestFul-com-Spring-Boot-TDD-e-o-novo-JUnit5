@@ -1,11 +1,11 @@
-package com.melchiorfelix.libraryapi.servvice.impl;
+package com.melchiorfelix.libraryapi.service.impl;
 
 import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.entity.Loan;
 import com.melchiorfelix.libraryapi.model.repository.LoanRepository;
-import com.melchiorfelix.libraryapi.servvice.LoanService;
+import com.melchiorfelix.libraryapi.service.LoanService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

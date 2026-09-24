@@ -1,5 +1,10 @@
 # Dependency security update — 2026-09-23
 
+This is a historical report of the dependency migration before the repository
+was focused on the library API. The introductory test and REST projects have
+since been removed. Counts and checks below describe that earlier three-module
+snapshot; see the root README for the current library-only build and checks.
+
 The baseline is commit `8cdfaa83a119f4d4cf5b7232f44100d8cd8a13e1`
 (the former `master` tip). `main` preserves that history, and `development`
 was created from `main`.

@@ -6,8 +6,8 @@ import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
 import com.melchiorfelix.libraryapi.api.dto.ReturnedLoanDTO;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.entity.Loan;
-import com.melchiorfelix.libraryapi.servvice.BookService;
-import com.melchiorfelix.libraryapi.servvice.LoanService;
+import com.melchiorfelix.libraryapi.service.BookService;
+import com.melchiorfelix.libraryapi.service.LoanService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -36,7 +36,7 @@ public class LoanController {
     public Long create(@RequestBody LoanDTO dto){
         Book book = bookService
                 .getBookByIsbn(dto.getIsbn())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book not found for passed isbn" ));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book not found for the provided ISBN" ));
         Loan loan = Loan.builder().book(book).customer(dto.getCustomer()).loanDate(LocalDate.now()).build();
         loan = service.save(loan);
 

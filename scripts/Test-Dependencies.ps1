@@ -13,14 +13,12 @@ function Add-Dependency($node) {
     foreach ($child in $node.children) { Add-Dependency $child }
 }
 
-foreach ($module in @('primeiroteste', 'primeiro-projeto-rest', 'library-api')) {
-    $path = Join-Path $root "$module/target/$TreeFile"
-    $tree = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
-    if (-not $tree.artifactId) { throw "Invalid dependency tree: $path" }
-    foreach ($child in $tree.children) { Add-Dependency $child }
-}
+$path = Join-Path $root "library-api/target/$TreeFile"
+$tree = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+if (-not $tree.artifactId) { throw "Invalid dependency tree: $path" }
+foreach ($child in $tree.children) { Add-Dependency $child }
 
-if ($packages.Count -eq 0) { throw 'No dependencies found; generate the Maven dependency trees first.' }
+if ($packages.Count -eq 0) { throw 'No dependencies found; generate the Maven dependency tree first.' }
 $queries = @($packages.GetEnumerator() | Sort-Object Name | ForEach-Object Value)
 $body = @{ queries = $queries } | ConvertTo-Json -Depth 10
 $response = Invoke-RestMethod -Method Post -Uri 'https://api.osv.dev/v1/querybatch' -ContentType 'application/json' -Body $body

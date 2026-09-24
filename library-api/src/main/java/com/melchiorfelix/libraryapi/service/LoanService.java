@@ -1,4 +1,4 @@
-package com.melchiorfelix.libraryapi.servvice;
+package com.melchiorfelix.libraryapi.service;
 
 import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
 import com.melchiorfelix.libraryapi.api.resource.BookController;

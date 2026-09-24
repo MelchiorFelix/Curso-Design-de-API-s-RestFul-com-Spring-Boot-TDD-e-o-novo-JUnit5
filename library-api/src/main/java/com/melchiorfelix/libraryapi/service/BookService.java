@@ -1,4 +1,4 @@
-package com.melchiorfelix.libraryapi.servvice;
+package com.melchiorfelix.libraryapi.service;
 
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import org.springframework.data.domain.Page;

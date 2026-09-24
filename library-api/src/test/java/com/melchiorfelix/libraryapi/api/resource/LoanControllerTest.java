@@ -7,9 +7,9 @@ import com.melchiorfelix.libraryapi.api.dto.ReturnedLoanDTO;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.entity.Loan;
-import com.melchiorfelix.libraryapi.servvice.BookService;
-import com.melchiorfelix.libraryapi.servvice.LoanService;
-import com.melchiorfelix.libraryapi.servvice.LoanServiceTest;
+import com.melchiorfelix.libraryapi.service.BookService;
+import com.melchiorfelix.libraryapi.service.LoanService;
+import com.melchiorfelix.libraryapi.service.LoanServiceTest;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,9 +57,9 @@ public class LoanControllerTest {
     private LoanService loanService;
 
     @Test
-    @DisplayName("Deve realizar um emprestimo")
+    @DisplayName("Should create a loan")
     public void createLoan() throws Exception{
-        //cenario
+        // Arrange
         LoanDTO dto = LoanDTO.builder().isbn("123").customer("Maria").build();
         String json = new ObjectMapper().writeValueAsString(dto);
 
@@ -69,44 +69,44 @@ public class LoanControllerTest {
         Loan loan = Loan.builder().id(1L).customer("Maria").book(book).loanDate(LocalDate.now()).build();
         given(loanService.save(any(Loan.class))).willReturn(loan);
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LOAN_API)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json);
 
-        //verificao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isCreated())
                 .andExpect(content().string("1"));
     }
 
     @Test
-    @DisplayName("Deve retornar erro ao tentar fazer ")
+    @DisplayName("Should reject a loan when the ISBN does not match a book")
     public void invalidIsbnLoan() throws Exception{
-        //cenario
+        // Arrange
         LoanDTO dto = LoanDTO.builder().isbn("123").customer("Maria").build();
         String json = new ObjectMapper().writeValueAsString(dto);
 
         given(bookService.getBookByIsbn("123")).willReturn(Optional.empty());
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LOAN_API)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json);
 
-        //verificao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors",Matchers.hasSize(1) ))
-                .andExpect(jsonPath("errors[0]").value("Book not found for passed isbn"));
+                .andExpect(jsonPath("errors[0]").value("Book not found for the provided ISBN"));
     }
 
     @Test
-    @DisplayName("Deve retornar erro ao tentar fazer ")
-    public void lonedBookErrorCreateLoan() throws Exception{
-        //cenario
+    @DisplayName("Should reject a loan when the book is already on loan")
+    public void rejectLoanForBookAlreadyOnLoan() throws Exception{
+        // Arrange
         LoanDTO dto = LoanDTO.builder().isbn("123").customer("Maria").build();
         String json = new ObjectMapper().writeValueAsString(dto);
 
@@ -115,13 +115,13 @@ public class LoanControllerTest {
 
         given(loanService.save(any(Loan.class))).willThrow(new BusinessException("Book already loaned"));
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LOAN_API)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json);
 
-        //verificao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors",Matchers.hasSize(1) ))
@@ -129,9 +129,9 @@ public class LoanControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar um livro")
+    @DisplayName("Should return a book")
     public void returnBookTest() throws Exception{
-        //cenário { returned: true }
+        // Arrange { returned: true }
         ReturnedLoanDTO dto = ReturnedLoanDTO.builder().returned(true).build();
         Loan loan = Loan.builder().id(1L).build();
         given(loanService.getById(anyLong())).willReturn(Optional.of(loan));
@@ -151,9 +151,9 @@ public class LoanControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar 404 quando tentar devolvedor um livro inexistente")
+    @DisplayName("Should return 404 when returning a book for a nonexistent loan")
     public void returnInexistentBookTest() throws Exception{
-        //cenário { returned: true }
+        // Arrange { returned: true }
         ReturnedLoanDTO dto = ReturnedLoanDTO.builder().returned(true).build();
         given(loanService.getById(anyLong())).willReturn(Optional.empty());
 
@@ -171,9 +171,9 @@ public class LoanControllerTest {
     }
 
     @Test
-    @DisplayName("Deve filtrar emprestimos")
+    @DisplayName("Should filter loans")
     public void findLoanTests() throws Exception{
-        //cenario
+        // Arrange
         Long id = 1L;
         Loan loan = LoanServiceTest.createLoan();
         loan.setId(id);
@@ -184,12 +184,12 @@ public class LoanControllerTest {
 
         String queryString = String.format("?isbn=%s&customer=%s&page=0&size=10", loan.getBook().getIsbn(), loan.getCustomer());
 
-        //execucao
+        // Act
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .get(LOAN_API.concat(queryString))
                 .accept(MediaType.APPLICATION_JSON);
 
-        //verificacao
+        // Assert
         mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("content", hasSize(1)))

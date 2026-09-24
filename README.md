@@ -1,72 +1,112 @@
-# Curso-Design-de-API-s-RestFul-com-Spring-Boot-TDD-e-o-novo-JUnit5
+# Library API
 
-## Executar e verificar
+A Spring Boot REST API for managing library books and loans, developed with
+test-driven development. The repository focuses on the library domain and
+contains one application module: `library-api`.
 
-Requisitos: JDK 17 ou superior e `JAVA_HOME` configurado. O Maven Wrapper usa
-Maven 3.9.16 com checksum SHA-256. Os três módulos usam o gerenciamento de
-dependências do Spring Boot 4.1.1; os testes continuam usando a API Jupiter,
-agora com o JUnit gerenciado pelo Spring Boot (JUnit 6).
+## Requirements
 
-Na raiz do repositório:
+- JDK 17 or later, with `JAVA_HOME` configured.
+- The included Maven Wrapper downloads Maven 3.9.16 and verifies its SHA-256 checksum.
+
+The application uses Spring Boot 4.1.1, Spring MVC, Spring Data JPA, Jakarta
+Validation, ModelMapper, and an embedded H2 database. Tests use Spring Boot's
+managed JUnit Jupiter, Mockito, and AssertJ dependencies.
+
+## Build and test
+
+From the repository root on Windows:
 
 ```powershell
 .\mvnw.cmd -B -ntp clean verify
 ```
 
-No Linux/macOS, use `./mvnw`. Para executar uma aplicação:
+On Linux or macOS:
+
+```sh
+./mvnw -B -ntp clean verify
+```
+
+The root Maven build includes only `library-api`. Its 40 tests cover controllers,
+services, repositories, and the full application context.
+
+## Run locally
 
 ```powershell
 .\mvnw.cmd -pl library-api spring-boot:run
-.\mvnw.cmd -pl primeiro-projeto-rest spring-boot:run
 ```
 
-Execute apenas uma por vez na porta padrão 8080. São exemplos didáticos, sem
-autenticação ou autorização implementadas; a atualização de dependências não
-transforma esses exemplos em um serviço pronto para exposição pública.
+On Linux or macOS, use `./mvnw -pl library-api spring-boot:run`. After building,
+you can also run the packaged application:
 
-Para consultar vulnerabilidades conhecidas nas dependências resolvidas, incluindo
-dependências transitivas e de teste (PowerShell 7):
+```sh
+java -jar library-api/target/library-api-0.0.1-SNAPSHOT.jar
+```
+
+The API listens on `http://localhost:8080`. The default H2 database is in memory,
+so data is lost when the application stops. Authentication and authorization
+are not implemented; this is a learning project.
+
+## API
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/api/books` | Create a book with a title, author, and unique ISBN |
+| GET | `/api/books` | Filter books by their properties, with pagination |
+| GET | `/api/books/{id}` | Retrieve a book |
+| PUT | `/api/books/{id}` | Update a book's title and author using request parameters |
+| DELETE | `/api/books/{id}` | Delete a book |
+| GET | `/api/books/{id}/loans` | List loans for a book, with pagination |
+| POST | `/api/loans` | Create a loan using an ISBN and customer name; returns the loan ID |
+| GET | `/api/loans` | Find loans by ISBN or customer, with pagination |
+| PATCH | `/api/loans/{id}` | Set the loan's returned status |
+
+Paginated requests accept `page` (starting at zero) and `size`. A book with an
+outstanding loan cannot be loaned again. Business and validation errors return
+HTTP 400 with an `errors` array of English messages.
+
+For example, using curl in a Bash-compatible shell:
+
+```sh
+curl -X POST http://localhost:8080/api/books \
+  -H "Content-Type: application/json" \
+  -d '{"title":"The Adventures","author":"Alex Smith","isbn":"9780000000001"}'
+
+curl -X POST http://localhost:8080/api/loans \
+  -H "Content-Type: application/json" \
+  -d '{"isbn":"9780000000001","customer":"Sam Taylor"}'
+
+curl -X PATCH http://localhost:8080/api/loans/1 \
+  -H "Content-Type: application/json" \
+  -d '{"returned":true}'
+```
+
+Replace `1` in the last request with the loan ID returned by the previous request.
+
+## Dependency checks and CI
+
+Generate the resolved dependency tree, then query OSV using PowerShell 7:
 
 ```powershell
-.\mvnw.cmd -B -ntp org.apache.maven.plugins:maven-dependency-plugin:3.11.0:tree -DoutputFile=target/dependencies.json -DoutputType=json
+.\mvnw.cmd -B -ntp org.apache.maven.plugins:maven-dependency-plugin:3.11.0:tree '-DoutputFile=target/dependencies.json' '-DoutputType=json'
 pwsh -File scripts/Test-Dependencies.ps1
 ```
 
-O script consulta o OSV enviando nomes e versões dos pacotes Maven públicos,
-salva o resultado em `target/osv-dependencies.json` e falha quando encontra
-vulnerabilidades ou não consegue concluir a consulta. Ele não analisa código-fonte,
-plugins de build ou componentes embutidos dentro de outros JARs.
-O GitHub Actions verifica os três módulos com Java 17 e 21 e consulta o OSV em
-pushes, pull requests e semanalmente. O Dependabot acompanha Maven e Actions.
+The script sends public Maven package names and versions to OSV, including
+transitive and test dependencies. It writes `target/osv-dependencies.json` and
+fails if vulnerabilities are found or the query cannot be completed. It does not
+scan source code, build plugins, or components embedded inside other JARs.
 
-`main` é a branch padrão; use `development` para desenvolvimento.
+GitHub Actions builds and tests the library API on Java 17 and 21, starts the
+packaged application for an HTTP smoke test, and runs the OSV check on Java 17.
+The workflow runs on pushes and pull requests to `main` and `development`, and
+weekly. Dependabot tracks Maven dependencies and GitHub Actions.
 
-## Conteúdo original do curso
+The [dependency migration report](docs/security-update-2026-09-23.md) records the
+earlier security update, before the introductory course modules were removed.
 
-Descrição
-Nesse curso, feito de desenvolvedor para desenvolvedor, trago conceitos fundamentais sobre testes automatizados e Api's RestFul,  além de boas práticas e Clean Code, para, em integração, criarmos API's RestFul utilizando a técnica do TDD (Test Driven Development), onde desenvolveremos orientado a testes, uma API RestFul utilizando Spring Boot. Curso 100% prático onde eu codifico todos os códigos.
+## Development
 
-
-
-Dentre outros conhecimentos, você aprenderá:
-
-
-
-A modelar uma API RestFUL, utilizar os métodos HTTP, códigos de resposta, etc.;
-
-Criar serviço de agendamento de tarefas e envio de emails com o Java;
-
-Documentação de API's com Swagger
-
-Implementação de testes automatizados;
-
-Configuração de Deploy Contínuo;
-
-Publicação da API na nuvem.
-
-Para quem é este curso:
-Quem deseja aprender técnicas avançadas de desenvolvimento de software
-Quem deseja aprender Spring Boot na prática
-Interessados em se atualizar no mercado com tecnologia robusta e amplamente utilizada
-Quem deseja conhecer conceitos de arquitetura RESTful
-Quem deseja aprender a desenvolver com a técnica TDD
+Target `development` when opening feature pull requests. `main` is the default
+branch. Use English for code identifiers, comments, test descriptions,
+documentation, and API messages.

@@ -25,51 +25,51 @@ public class BookRepositoryTest {
     BookRepository repository;
 
     @Test
-    @DisplayName("Deve retornar verdadeiro quando exisitir um livro na base com o isbn informado")
+    @DisplayName("Should return true when a book with the ISBN exists")
     public void returnTrueWhenIsbnExists(){
-        //cenario
+        // Arrange
         String isbn = "123";
-        Book book = Book.builder().title("As aventuras").author("Joao").isbn(isbn).build();
+        Book book = Book.builder().title("The Adventures").author("Joao").isbn(isbn).build();
         entityManager.persist(book);
-        //execucao
+        // Act
         boolean exists = repository.existsByIsbn(isbn);
 
-        //verificao
+        // Assert
         assertThat(exists).isTrue();
     }
 
     @Test
-    @DisplayName("Deve retornar falso quando não existir um livro na base com o isbn informado")
+    @DisplayName("Should return false when no book with the ISBN exists")
     public void returnFalseWhenIsbnDoesntExists(){
-        //cenario
+        // Arrange
         String isbn = "123";
 
-        //execucao
+        // Act
         boolean exists = repository.existsByIsbn(isbn);
 
-        //verificao
+        // Assert
         assertThat(exists).isFalse();
     }
 
     @Test
-    @DisplayName("Deve obter um livro por id.")
+    @DisplayName("Should retrieve a book by ID")
     public void findById(){
-        //cenario
+        // Arrange
         Book book = newBook();
         entityManager.persist(book);
-        //execucao
+        // Act
         Optional<Book> foundBook = repository.findById(book.getId());
 
-        //verificao
+        // Assert
         assertThat(foundBook.isPresent()).isTrue();
     }
 
     private Book newBook() {
-        return Book.builder().title("As aventuras").author("Joao").isbn("123").build();
+        return Book.builder().title("The Adventures").author("Joao").isbn("123").build();
     }
 
     @Test
-    @DisplayName("Deve salvar um livro")
+    @DisplayName("Should save a book")
     public void saveBook(){
 
         Book book = newBook();
@@ -80,18 +80,18 @@ public class BookRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve deletar um livro")
+    @DisplayName("Should delete a book")
     public void deleteBook(){
-        //cenario
+        // Arrange
         Book book = newBook();
         entityManager.persist(book);
         Book foundBook = entityManager.find(Book.class, book.getId());
 
-        //execução
+        // Act
         repository.delete(foundBook);
         Book deletedBook = entityManager.find(Book.class, book.getId());
 
-        //verficação
+        // Assert
         assertThat(deletedBook).isNull();
 
 
