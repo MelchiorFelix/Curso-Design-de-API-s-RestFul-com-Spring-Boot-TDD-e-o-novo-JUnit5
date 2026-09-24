@@ -3,27 +3,34 @@ package com.melchiorfelix.libraryapi.service.impl;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.repository.BookRepository;
+import com.melchiorfelix.libraryapi.model.repository.BookCopyRepository;
 import com.melchiorfelix.libraryapi.service.BookService;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Service
+@Transactional
 public class BookServiceImpl implements BookService {
 
-    private BookRepository repository;
+    private final BookRepository repository;
+    private final BookCopyRepository copies;
 
-    public BookServiceImpl(BookRepository repository) {
+    public BookServiceImpl(BookRepository repository, BookCopyRepository copies) {
         this.repository = repository;
+        this.copies = copies;
     }
 
 
     @Override
     public Book save(Book book) {
+        book.setId(null);
+        book.setIsbn(book.getIsbn().trim());
         if(repository.existsByIsbn(book.getIsbn())){
             throw new BusinessException("ISBN already registered");
         }
@@ -38,6 +45,10 @@ public class BookServiceImpl implements BookService {
     @Override
     public void delete(Book book) {
         if(book == null || book.getId() == null) throw new IllegalArgumentException("Book ID cannot be null.");
+        repository.findLockedById(book.getId());
+        if (copies.existsByBookId(book.getId())) {
+            throw new BusinessException("Books with inventory cannot be deleted; withdraw their copies instead");
+        }
         this.repository.delete(book);
     }
 

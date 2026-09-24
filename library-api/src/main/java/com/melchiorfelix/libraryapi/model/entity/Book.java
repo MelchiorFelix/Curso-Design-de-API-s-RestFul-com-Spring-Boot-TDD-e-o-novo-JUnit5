@@ -20,6 +20,7 @@ public class Book {
     private Long id;
     private String title;
     private String author;
+    @Column(nullable = false, unique = true)
     private String isbn;
     @OneToMany(mappedBy = "book")
     private List<Loan> loans;

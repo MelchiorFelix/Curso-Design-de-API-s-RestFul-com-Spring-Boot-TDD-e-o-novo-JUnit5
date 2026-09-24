@@ -1,180 +1,120 @@
 package com.melchiorfelix.libraryapi.service;
 
-import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
+import com.melchiorfelix.libraryapi.api.dto.CheckoutRequest;
+import com.melchiorfelix.libraryapi.config.CirculationPolicy;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
-import com.melchiorfelix.libraryapi.model.entity.Book;
-import com.melchiorfelix.libraryapi.model.entity.Loan;
-import com.melchiorfelix.libraryapi.model.repository.LoanRepository;
+import com.melchiorfelix.libraryapi.model.entity.*;
+import com.melchiorfelix.libraryapi.model.repository.*;
 import com.melchiorfelix.libraryapi.service.impl.LoanServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.time.LocalDate;
-import java.util.Arrays;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import java.time.*;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(SpringExtension.class)
-@ActiveProfiles("test")
-public class LoanServiceTest {
-
-    @MockitoBean
-    private LoanRepository repository;
-
-    private LoanService service;
+@ExtendWith(MockitoExtension.class)
+class LoanServiceTest {
+    @Mock LoanRepository loans;
+    @Mock MemberRepository members;
+    @Mock BookRepository books;
+    @Mock BookCopyRepository copies;
+    CirculationPolicy policy;
+    LoanService service;
+    final Clock clock = Clock.fixed(Instant.parse("2026-09-24T12:00:00Z"), ZoneOffset.UTC);
+    Member member;
+    Book book;
+    BookCopy copy;
 
     @BeforeEach
-    public void setUp(){
-        this.service = new LoanServiceImpl(repository);
+    void setUp() {
+        policy = new CirculationPolicy();
+        service = new LoanServiceImpl(loans, members, books, copies, policy, clock);
+        member = Member.builder().id(1L).name("Sam").build();
+        book = Book.builder().id(2L).isbn("123").build();
+        copy = BookCopy.builder().id(3L).book(book).barcode("COPY-1").build();
     }
 
     @Test
-    @DisplayName("Should save a loan")
-    public void saveLoanTest(){
-        // Arrange
-        Book book = Book.builder().id(1L).build();
-        String customer = "João";
-
-        Loan savingLoan = Loan.builder()
-                .book(book)
-                .customer(customer)
-                .loanDate(LocalDate.now())
-                .build();
-
-        Loan savedLoan = Loan.builder()
-                .id(1L)
-                .loanDate(LocalDate.now())
-                .customer(customer)
-                .book(book).build();
-
-        when(repository.existsByBookAndNotReturned(book)).thenReturn(false);
-        when(repository.save(savingLoan)).thenReturn(savedLoan);
-
-        // Act
-        Loan loan = service.save(savingLoan);
-
-        // Assert
-        assertThat(loan.getId()).isEqualTo(savedLoan.getId());
-        assertThat(loan.getBook()).isEqualTo(savedLoan.getBook());
-        assertThat(loan.getCustomer()).isEqualTo(savedLoan.getCustomer());
-        assertThat(loan.getLoanDate()).isEqualTo(savedLoan.getLoanDate());
-    }
-
-
-    @Test
-    @DisplayName("Should reject a loan when the book is already on loan")
-    public void loanedBookSaveTest(){
-        // Arrange
-        Book book = Book.builder().id(1L).build();
-        String customer = "João";
-
-        Loan savingLoan = Loan.builder()
-                .book(book)
-                .customer(customer)
-                .loanDate(LocalDate.now())
-                .build();
-        when(repository.existsByBookAndNotReturned(book)).thenReturn(true);
-
-
-
-        // Act
-        Throwable exception = catchThrowable(() -> service.save(savingLoan));
-
-        // Assert
-        assertThat(exception).isInstanceOf(BusinessException.class)
-                .hasMessage("Book already loaned");
-
-        verify(repository, never()).save(savingLoan);
-
+    void checkoutSetsServerControlledDatesAndBorrower() {
+        when(members.findLockedById(1L)).thenReturn(Optional.of(member));
+        when(books.findLockedByIsbn("123")).thenReturn(Optional.of(book));
+        when(copies.findFirstByBookIdAndStatusOrderByIdAsc(2L, CopyStatus.AVAILABLE)).thenReturn(Optional.of(copy));
+        when(loans.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        Loan loan = service.checkout(new CheckoutRequest("123", 1L, null));
+        assertThat(loan.getLoanDate()).isEqualTo(LocalDate.of(2026, 9, 24));
+        assertThat(loan.getDueDate()).isEqualTo(LocalDate.of(2026, 10, 8));
+        assertThat(loan.getCustomer()).isEqualTo("Sam");
+        assertThat(loan.getReturned()).isFalse();
+        assertThat(copy.getStatus()).isEqualTo(CopyStatus.ON_LOAN);
     }
 
     @Test
-    @DisplayName("Should retrieve loan details by ID")
-    public void getLoanDetails(){
-        // Arrange
-        Long id = 1L;
-        Loan loan = createLoan();
-        loan.setId(id);
-        when(repository.findById(id)).thenReturn(Optional.of(loan));
-
-        // Act
-        Optional<Loan> result = service.getById(id);
-
-        // Assert
-        assertThat(result.isPresent()).isTrue();
-        assertThat(result.get().getId()).isEqualTo(id);
-        assertThat(result.get().getCustomer()).isEqualTo(loan.getCustomer());
-        assertThat(result.get().getBook()).isEqualTo(loan.getBook());
-        assertThat(result.get().getLoanDate()).isEqualTo(loan.getLoanDate());
-
-        verify(repository).findById(id);
+    void suspendedMemberCannotBorrow() {
+        member.setActive(false);
+        when(members.findLockedById(1L)).thenReturn(Optional.of(member));
+        assertThatThrownBy(() -> service.checkout(new CheckoutRequest("123", 1L, null)))
+                .isInstanceOf(BusinessException.class).hasMessage("Member is suspended");
+        verifyNoInteractions(books, copies);
     }
 
     @Test
-    @DisplayName("Should update a loan")
-    public void updateLoan(){
-        // Arrange
-        Loan loan = createLoan();
-        loan.setId(1L);
+    void memberLimitIsCheckedBeforeAllocatingInventory() {
+        when(members.findLockedById(1L)).thenReturn(Optional.of(member));
+        when(loans.countByMemberIdAndReturnedFalse(1L)).thenReturn(5L);
+        assertThatThrownBy(() -> service.checkout(new CheckoutRequest("123", 1L, null)))
+                .hasMessage("Member has reached the active loan limit");
+        verify(loans, never()).save(any());
+    }
+
+    @Test
+    void cannotSelectACopyOfAnotherTitle() {
+        when(members.findLockedById(1L)).thenReturn(Optional.of(member));
+        when(books.findLockedByIsbn("123")).thenReturn(Optional.of(book));
+        copy.setBook(Book.builder().id(9L).build());
+        when(copies.findById(3L)).thenReturn(Optional.of(copy));
+        assertThatThrownBy(() -> service.checkout(new CheckoutRequest("123", 1L, 3L)))
+                .hasMessage("Copy does not belong to the requested book");
+        assertThat(copy.getStatus()).isEqualTo(CopyStatus.AVAILABLE);
+    }
+
+    @Test
+    void zeroRenewalsDisablesRenewal() {
+        policy.setMaxRenewals(0);
+        Loan loan = prepareLockedLoan();
+        assertThatThrownBy(() -> service.renew(4L)).hasMessage("Renewal limit reached");
+        assertThat(loan.getRenewalCount()).isZero();
+    }
+
+    @Test
+    void renewalExtendsExistingDueDate() {
+        Loan loan = prepareLockedLoan();
+        service.renew(4L);
+        assertThat(loan.getDueDate()).isEqualTo(LocalDate.of(2026, 10, 22));
+        assertThat(loan.getRenewalCount()).isEqualTo(1);
+    }
+
+    @Test
+    void repeatedReturnDoesNotReleaseACopyAlreadyBorrowedAgain() {
+        Loan loan = prepareLockedLoan();
         loan.setReturned(true);
-        when(repository.save(loan)).thenReturn(loan);
-
-        // Act
-        Loan update = service.update(loan);
-
-        // Assert
-        assertThat(update.getReturned()).isTrue();
-        verify(repository).save(loan);
+        loan.setReturnedDate(LocalDate.of(2026, 9, 23));
+        copy.setStatus(CopyStatus.ON_LOAN);
+        service.returnLoan(4L);
+        assertThat(copy.getStatus()).isEqualTo(CopyStatus.ON_LOAN);
+        assertThat(loan.getReturnedDate()).isEqualTo(LocalDate.of(2026, 9, 23));
     }
 
-    @Test
-    @DisplayName("Should filter loans by their properties")
-    public void findLoanTest(){
-        // Arrange
-        LoanFilterDTO loanFilterDTO = LoanFilterDTO.builder().customer("Alex Smith").isbn("321").build();
-        Loan loan = createLoan();
-        loan.setId(1L);
-        PageRequest pageRe = PageRequest.of(0, 10);
-        PageImpl<Loan> page = new PageImpl<>(Arrays.asList(loan), pageRe, 1);
-        when(repository.findByBookIsbnOrCustomer(anyString(), anyString(), any(PageRequest.class))).thenReturn(page);
-
-        // Act
-        Page<Loan> result = service.find(loanFilterDTO, pageRe);
-
-        // Assert
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent()).isEqualTo(Arrays.asList(loan));
-        assertThat(result.getPageable().getPageNumber()).isEqualTo(0);
-        assertThat(result.getPageable().getPageSize()).isEqualTo(10);
-
-
-
-    }
-
-
-
-
-
-    public static Loan createLoan(){
-        Book book = Book.builder().id(1L).build();
-        String customer = "João";
-
-        return Loan.builder()
-                .book(book)
-                .customer(customer)
-                .loanDate(LocalDate.now())
-                .build();
+    private Loan prepareLockedLoan() {
+        Loan loan = Loan.builder().id(4L).book(book).member(member).copy(copy)
+                .loanDate(LocalDate.of(2026, 9, 24)).dueDate(LocalDate.of(2026, 10, 8)).build();
+        when(loans.findMemberId(4L)).thenReturn(Optional.of(1L));
+        when(members.findLockedById(1L)).thenReturn(Optional.of(member));
+        when(loans.findBookId(4L)).thenReturn(Optional.of(2L));
+        when(books.findLockedById(2L)).thenReturn(Optional.of(book));
+        when(loans.findById(4L)).thenReturn(Optional.of(loan));
+        return loan;
     }
 }

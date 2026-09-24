@@ -14,6 +14,24 @@ import org.springframework.web.server.ResponseStatusException;
 @RestControllerAdvice
 public class ApplicationControllerAdvice {
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiErrors handleDataConflict() {
+        return new ApiErrors("A unique identifier is already registered or the record is still referenced");
+    }
+
+    @ExceptionHandler(org.springframework.dao.PessimisticLockingFailureException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiErrors handleConcurrentUpdate() {
+        return new ApiErrors("Another circulation operation is in progress; please retry");
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErrors handleUnreadableRequest() {
+        return new ApiErrors("Request body contains invalid JSON or field values");
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiErrors handleValidationExceptions(MethodArgumentNotValidException exception){

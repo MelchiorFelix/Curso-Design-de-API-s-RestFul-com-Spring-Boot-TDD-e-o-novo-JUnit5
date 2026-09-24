@@ -3,6 +3,7 @@ package com.melchiorfelix.libraryapi.service;
 import com.melchiorfelix.libraryapi.exception.BusinessException;
 import com.melchiorfelix.libraryapi.model.entity.Book;
 import com.melchiorfelix.libraryapi.model.repository.BookRepository;
+import com.melchiorfelix.libraryapi.model.repository.BookCopyRepository;
 import com.melchiorfelix.libraryapi.service.impl.BookServiceImpl;
 import org.assertj.core.api.Assertions;
 import org.hibernate.validator.constraints.time.DurationMax;
@@ -35,11 +36,13 @@ public class BookServiceTest {
     BookService service;
     @MockitoBean
     BookRepository repository;
+    @MockitoBean
+    BookCopyRepository copies;
 
 
     @BeforeEach
     public void setUp(){
-        this.service = new BookServiceImpl(repository);
+        this.service = new BookServiceImpl(repository, copies);
     }
 
     @Test

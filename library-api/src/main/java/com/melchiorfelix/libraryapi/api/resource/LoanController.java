@@ -1,68 +1,49 @@
 package com.melchiorfelix.libraryapi.api.resource;
 
-import com.melchiorfelix.libraryapi.api.dto.BookDTO;
-import com.melchiorfelix.libraryapi.api.dto.LoanDTO;
-import com.melchiorfelix.libraryapi.api.dto.LoanFilterDTO;
-import com.melchiorfelix.libraryapi.api.dto.ReturnedLoanDTO;
-import com.melchiorfelix.libraryapi.model.entity.Book;
-import com.melchiorfelix.libraryapi.model.entity.Loan;
-import com.melchiorfelix.libraryapi.service.BookService;
+import com.melchiorfelix.libraryapi.api.dto.*;
 import com.melchiorfelix.libraryapi.service.LoanService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/loans")
 @RequiredArgsConstructor
 public class LoanController {
-
     private final LoanService service;
-    private final BookService bookService;
-    private final ModelMapper modelMapper;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Long create(@RequestBody LoanDTO dto){
-        Book book = bookService
-                .getBookByIsbn(dto.getIsbn())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book not found for the provided ISBN" ));
-        Loan loan = Loan.builder().book(book).customer(dto.getCustomer()).loanDate(LocalDate.now()).build();
-        loan = service.save(loan);
+    public Long create(@Valid @RequestBody CheckoutRequest request) {
+        return service.checkout(request).getId();
+    }
 
-        return loan.getId();
+    @GetMapping("{id}")
+    public LoanDTO get(@PathVariable Long id) {
+        return LoanDTO.from(service.getById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loan not found")));
     }
 
     @PatchMapping("{id}")
-    public void returnBook(@PathVariable Long id, @RequestBody ReturnedLoanDTO dto){
-        Loan loan = service.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        loan.setReturned(dto.getReturned());
-        service.update(loan);
+    public void returnBook(@PathVariable Long id, @Valid @RequestBody ReturnedLoanDTO request) {
+        service.returnLoan(id);
+    }
+
+    @PostMapping("{id}/renew")
+    public LoanDTO renew(@PathVariable Long id) {
+        return LoanDTO.from(service.renew(id));
     }
 
     @GetMapping
-    public Page<LoanDTO> find(LoanFilterDTO dto, Pageable pageable){
-        Page<Loan> result = service.find(dto, pageable);
-        List<LoanDTO> loans = result.getContent().stream().map(
-                entity -> {
-                    Book book = entity.getBook();
-                    BookDTO bookDTO = modelMapper.map(book, BookDTO.class);
-                    LoanDTO loanDTO = modelMapper.map(entity, LoanDTO.class);
-                    loanDTO.setBook(bookDTO);
-                    return loanDTO;
-                }
-        ).collect(Collectors.toList());
-        return new PageImpl<>(loans, pageable, result.getTotalElements());
+    public Page<LoanDTO> find(LoanFilterDTO filter, Pageable pageable) {
+        return service.find(filter, pageable).map(LoanDTO::from);
     }
 
+    @GetMapping("overdue")
+    public Page<LoanDTO> overdue(Pageable pageable) {
+        return service.find(LoanFilterDTO.builder().overdue(true).build(), pageable).map(LoanDTO::from);
+    }
 }
