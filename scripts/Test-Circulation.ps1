@@ -5,6 +5,21 @@ param(
 $ErrorActionPreference = 'Stop'
 $suffix = [Guid]::NewGuid().ToString('N')
 
+$specification = Invoke-RestMethod -Uri "$BaseUrl/v3/api-docs"
+if ($specification.info.title -ne 'Library API' -or
+        $specification.paths.'/api/loans'.post.operationId -ne 'checkout') {
+    throw 'OpenAPI metadata or circulation documentation is missing.'
+}
+$swaggerConfiguration = Invoke-RestMethod -Uri "$BaseUrl/v3/api-docs/swagger-config"
+if ($swaggerConfiguration.url -ne '/v3/api-docs') {
+    throw 'Swagger UI is not configured to use the local API specification.'
+}
+$swaggerPage = Invoke-WebRequest -Uri "$BaseUrl/swagger-ui.html"
+if ($swaggerPage.StatusCode -ne 200 -or $swaggerPage.Content -notmatch 'swagger-ui-bundle.js') {
+    throw 'Swagger UI did not serve its application page.'
+}
+Write-Output 'Swagger smoke test passed: OpenAPI document, UI configuration, and UI page.'
+
 function Invoke-Api([string]$Method, [string]$Path, $Payload = $null) {
     $parameters = @{ Method = $Method; Uri = "$BaseUrl$Path" }
     if ($null -ne $Payload) {

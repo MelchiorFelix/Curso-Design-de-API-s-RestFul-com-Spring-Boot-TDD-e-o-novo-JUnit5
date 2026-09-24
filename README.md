@@ -43,6 +43,26 @@ The API listens on `http://localhost:8080`. H2 is in memory by default; data is
 lost when the application stops. Authentication and authorization are not
 implemented. This is a learning project, not a public-facing production service.
 
+## Swagger UI and OpenAPI
+
+Start the application, then open [Swagger UI](http://localhost:8080/swagger-ui.html)
+to browse and try the API. Endpoints are organized under Books, Copies, Members,
+and Loans, with request examples, validation requirements, pagination, and error
+responses.
+
+- [OpenAPI JSON](http://localhost:8080/v3/api-docs)
+- [OpenAPI YAML](http://localhost:8080/v3/api-docs.yaml)
+
+The documentation uses springdoc 3.1.1 for Spring Boot 4 and includes only
+`/api/**` routes. The API version comes from the Maven project version. Swagger
+UI uses the current server, so it also works when the application port changes.
+To try checkout, create a member, a book, and a copy first, then use their IDs.
+The **Try it out** actions execute real API requests against that running instance.
+
+Configuration is in `library-api/src/main/resources/application.properties`.
+Set `springdoc.api-docs.enabled=false` and `springdoc.swagger-ui.enabled=false`
+to disable documentation in an environment.
+
 ## Lending rules
 
 | Setting | Default | Meaning |
